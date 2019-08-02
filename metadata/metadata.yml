@@ -1,0 +1,16 @@
+metadata_version: 1
+name: A Neural Network for Classifying Leukocyte Images from Blood Smears (Matek et
+  al.)
+description: We use the ResNeXt CNN to classify images of white blood cells into 18
+  different classes. In this code we exemplify the prediction of class probabilities
+  for one image.
+authors:
+- name: Christian Matek
+  affiliations:
+  - name: Ludwig-Maximilians-Universität München
+- name: Carsten Marr
+  affiliations:
+  - name: Institute of Computational Biology, Helmholtz Zentrum München
+corresponding_contributor:
+  name: Christian Matek
+  email: christian.matek@tum.de
