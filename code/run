@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-python -u "predict_leukocyte_class.py"
+python -u "predict_leukocyte_class.py" '../data/image_data/BASOPHIL/Basophil_01_t.tiff'
