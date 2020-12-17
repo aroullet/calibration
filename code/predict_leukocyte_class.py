@@ -19,7 +19,6 @@ import residual_network
 import sys
 import os
 
-
 classes_dictionary_org = {'BAS':0, 'EBO':1, 'EOS':2, 'KSC':3, 'LYA':4, 'LYT':5, 'MMZ':6, 'MOB':7, 'MON':8, 'MYB':9, 'MYO':10, 'NGB':11, 'NGS':12, 'PMB':13, 'PMO':14 }
 classes_dictionary = {value: key for key, value in classes_dictionary_org.items()}
 
@@ -49,50 +48,41 @@ else:
         input_shape = (img_width, img_height, 3)
 
 
-#if(len(sys.argv) < 2): 
-    #print('WARNING: No input file specified, defaulting to ../data/image_data/MYELOBLAST/Myeloblast_01_t.tiff ....')
-    #image_file_path = '../data/image_data/MYELOBLAST/Myeloblast_01_t.tiff'
-#else:
-    #image_file_path = sys.argv[1]
-
 weight_file_path = "weights.hdf5"
-
-#if not os.path.exists(image_file_path):
-        #print ("Image file " + image_file_path+" does not exist.\nAborting.")
-        #sys.exit()
-
-test_folder = '../data/test_data/'
-test_files = os.listdir(test_folder)[:10] 
-print(test_files)
 
 model = residual_network.model
 model.load_weights(weight_file_path)
 
 model.compile(loss='categorical_crossentropy',
               optimizer='adam',
-              metrics=['accuracy'])              
+              metrics=['accuracy'])
+
+batch_size = 5
+test_folder = '../data/test_data/'
+test_files = os.listdir(test_folder)[:batch_size]          
 
 input = []
 
-for i in test_files:
-        img = utils.load_img(test_folder + i)
-        imsave('../results/input_image.png',img)
+for _file in test_files:
+        img = utils.load_img(test_folder + _file)
+        imsave(f'../results/{_file}.png',img)
         img = (img[:,:,:3] *1./255)
 
         x = image.img_to_array(img)
         x = np.expand_dims(x, axis=0)
         input.append(x)
 
-images = np.vstack(input)
-preds_probs = model.predict(images, batch_size=10)
+images = np.vstack(input) # n arrays w/ shape (1, 400, 400, 3) --> 1 w/ shape (n, 400, 400, 3)
+
+preds_probs = model.predict_on_batch(images)
 preds_probs = np.array(preds_probs)
 preds_probs[:,1]+=preds_probs[:,2]
 preds_probs=np.delete(preds_probs,2,1)
 
 print ("Network output distribution: \n----------------------------------------------")
-for i in range(len(preds_probs[0])):
-	print('{0:25}  {1}'.format(abbreviation_dict[classes_dictionary[i]], str(preds_probs[0][i])))
+for i in range(len(preds_probs)):
+        for j in range(15):
+	        print('{0:25}  {1}'.format(abbreviation_dict[classes_dictionary[j]], str(preds_probs[i][j])))
 
-print ("\n\nPREDICTION: \n"+abbreviation_dict[classes_dictionary[np.argmax(preds_probs)]])
+        print ("\n\nPREDICTION: \n"+abbreviation_dict[classes_dictionary[np.argmax(preds_probs[i])]]+"\n")
         
-
