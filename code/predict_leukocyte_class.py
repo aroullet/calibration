@@ -1,19 +1,11 @@
 #!/usr/bin/env python3
 # coding: utf8
 
-
-from keras.preprocessing.image import ImageDataGenerator
 from keras.preprocessing import image
-from keras.models import Sequential
-from keras.layers import Conv2D, MaxPooling2D, AveragePooling2D
-from keras.layers import Activation, Dropout, Flatten, Dense
-from keras.layers.normalization import BatchNormalization
-from keras.callbacks import ModelCheckpoint
 from keras import backend as K
 
 from vis.utils import utils
 import numpy as np
-from scipy.misc import imsave
 import residual_network
 
 import calibration
@@ -66,7 +58,6 @@ input = []
 
 for _file in test_files:
         img = utils.load_img(test_folder + _file)
-        #imsave(f'../results/{_file}.png',img)
         img = (img[:,:,:3] *1./255)
 
         x = image.img_to_array(img)
@@ -85,8 +76,8 @@ print(y_true, y_prob)
 
 print ("Network output distribution: \n----------------------------------------------")
 for i in range(len(preds_probs)):
-        for j in range(15):
-	        print('{0:25}  {1}'.format(abbreviation_dict[classes_dictionary[j]], str(preds_probs[i][j])))
+    for j in range(15):
+        print('{0:25}  {1}'.format(abbreviation_dict[classes_dictionary[j]], str(preds_probs[i][j])))
 
         print ("\n\nPREDICTION: \n"+abbreviation_dict[classes_dictionary[np.argmax(preds_probs[i])]]+"\n")
         
