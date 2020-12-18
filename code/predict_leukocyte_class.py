@@ -16,6 +16,7 @@ import numpy as np
 from scipy.misc import imsave
 import residual_network
 
+import calibration
 import sys
 import os
 
@@ -65,7 +66,7 @@ input = []
 
 for _file in test_files:
         img = utils.load_img(test_folder + _file)
-        imsave(f'../results/{_file}.png',img)
+        #imsave(f'../results/{_file}.png',img)
         img = (img[:,:,:3] *1./255)
 
         x = image.img_to_array(img)
@@ -78,6 +79,9 @@ preds_probs = model.predict_on_batch(images)
 preds_probs = np.array(preds_probs)
 preds_probs[:,1]+=preds_probs[:,2]
 preds_probs=np.delete(preds_probs,2,1)
+
+y_true, y_prob = calibration.get_data(preds_probs, test_files)
+print(y_true, y_prob)
 
 print ("Network output distribution: \n----------------------------------------------")
 for i in range(len(preds_probs)):
