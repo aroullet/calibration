@@ -9,28 +9,27 @@ import numpy as np
 import residual_network
 
 import calibration
-import sys
 import os
 
 classes_dictionary_org = {'BAS':0, 'EBO':1, 'EOS':2, 'KSC':3, 'LYA':4, 'LYT':5, 'MMZ':6, 'MOB':7, 'MON':8, 'MYB':9, 'MYO':10, 'NGB':11, 'NGS':12, 'PMB':13, 'PMO':14 }
 classes_dictionary = {value: key for key, value in classes_dictionary_org.items()}
 
 
-abbreviation_dict = { 'NGS':'Neutrophil (segmented)', 
-                      'NGB':'Neutrophil (band)',
-                      'EOS':'Eosinophil',
-                      'BAS':'Basophil',
-                      'MON':'Monocyte',
-                      'LYT':'Lymphocyte (typical)',
-                      'LYA':'Lymphocyte (atypical)',
-                      'KSC':'Smudge Cell',
-                      'MYO':'Myeloblast',
-                      'PMO':'Promyelocyte',
-                      'MYB':'Myelocyte',
-                      'MMZ':'Metamyelocyte',
-                      'MOB':'Monoblast',
-                      'EBO':'Erythroblast',
-                      'PMB':'Promyelocyte (bilobed)'};
+abbreviation_dict = { 'NGS': 'Neutrophil (segmented)',
+                      'NGB': 'Neutrophil (band)',
+                      'EOS': 'Eosinophil',
+                      'BAS': 'Basophil',
+                      'MON': 'Monocyte',
+                      'LYT': 'Lymphocyte (typical)',
+                      'LYA': 'Lymphocyte (atypical)',
+                      'KSC': 'Smudge Cell',
+                      'MYO': 'Myeloblast',
+                      'PMO': 'Promyelocyte',
+                      'MYB': 'Myelocyte',
+                      'MMZ': 'Metamyelocyte',
+                      'MOB': 'Monoblast',
+                      'EBO': 'Erythroblast',
+                      'PMB': 'Promyelocyte (bilobed)'};
 
 
 img_width, img_height = 400, 400
@@ -50,9 +49,9 @@ model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
 
-batch_size = 5
+batch_size = 3
 test_folder = '../data/test_data/'
-test_files = os.listdir(test_folder)[:batch_size]          
+test_files = os.listdir(test_folder)[:batch_size]
 
 input = []
 
@@ -71,13 +70,13 @@ preds_probs = np.array(preds_probs)
 preds_probs[:,1]+=preds_probs[:,2]
 preds_probs=np.delete(preds_probs,2,1)
 
-y_true, y_prob = calibration.get_data(preds_probs, test_files)
+y_true, y_prob = calibration.extract_probs(preds_probs, test_files, classes_dictionary)
 print(y_true, y_prob)
 
 print ("Network output distribution: \n----------------------------------------------")
 for i in range(len(preds_probs)):
     for j in range(15):
         print('{0:25}  {1}'.format(abbreviation_dict[classes_dictionary[j]], str(preds_probs[i][j])))
+        if j == 14:
 
-        print ("\n\nPREDICTION: \n"+abbreviation_dict[classes_dictionary[np.argmax(preds_probs[i])]]+"\n")
-        
+            print ("\n\nPREDICTION: \n"+abbreviation_dict[classes_dictionary[np.argmax(preds_probs[i])]]+"\n")
