@@ -11,7 +11,7 @@ import residual_network
 import calibration
 import os
 
-classes_dictionary_org = {'BAS':0, 'EBO':1, 'EOS':2, 'KSC':3, 'LYA':4, 'LYT':5, 'MMZ':6, 'MOB':7, 'MON':8, 'MYB':9, 'MYO':10, 'NGB':11, 'NGS':12, 'PMB':13, 'PMO':14 }
+classes_dictionary_org = {'BAS': 0, 'EBO': 1, 'EOS': 2, 'KSC': 3, 'LYA': 4, 'LYT': 5, 'MMZ': 6, 'MOB': 7, 'MON': 8, 'MYB': 9, 'MYO': 10, 'NGB': 11, 'NGS': 12, 'PMB': 13, 'PMO': 14}
 classes_dictionary = {value: key for key, value in classes_dictionary_org.items()}
 
 
@@ -49,11 +49,11 @@ model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
 
-batch_size = 3
+batch_size = 300
 test_folder = '../data/test_data/'
 test_files = os.listdir(test_folder)[:batch_size]
 
-input = []
+inputs = []
 
 for _file in test_files:
         img = utils.load_img(test_folder + _file)
@@ -61,9 +61,9 @@ for _file in test_files:
 
         x = image.img_to_array(img)
         x = np.expand_dims(x, axis=0)
-        input.append(x)
+        inputs.append(x)
 
-images = np.vstack(input) # n arrays w/ shape (1, 400, 400, 3) --> 1 w/ shape (n, 400, 400, 3)
+images = np.vstack(inputs) # n arrays w/ shape (1, 400, 400, 3) --> 1 w/ shape (n, 400, 400, 3)
 
 preds_probs = model.predict_on_batch(images)
 preds_probs = np.array(preds_probs)
@@ -72,11 +72,12 @@ preds_probs=np.delete(preds_probs,2,1)
 
 y_true, y_prob = calibration.extract_probs(preds_probs, test_files, classes_dictionary)
 print(y_true, y_prob)
+calibration.plot_calibration(y_true, y_prob)
 
-print ("Network output distribution: \n----------------------------------------------")
-for i in range(len(preds_probs)):
-    for j in range(15):
-        print('{0:25}  {1}'.format(abbreviation_dict[classes_dictionary[j]], str(preds_probs[i][j])))
-        if j == 14:
-
-            print ("\n\nPREDICTION: \n"+abbreviation_dict[classes_dictionary[np.argmax(preds_probs[i])]]+"\n")
+def show_preds():
+    print ("Network output distribution: \n----------------------------------------------")
+    for i in range(len(preds_probs)):
+        for j in range(15):
+            print('{0:25}  {1}'.format(abbreviation_dict[classes_dictionary[j]], str(preds_probs[i][j])))
+            if j == 14:
+                print ("\n\nPREDICTION: \n"+abbreviation_dict[classes_dictionary[np.argmax(preds_probs[i])]]+"\n")
