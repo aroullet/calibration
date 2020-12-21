@@ -34,6 +34,11 @@ def plot_calibration(y_true, y_pred):
         ax1.set_ylim([-0.05, 1.05])
         ax1.text(0.4, 0.2, f'Brier Score: {round(brier_score, 3)}')
 
+        ax1.axvspan(0.3, 0.7, color='gray', alpha=0.4, label='No Man\'s Land')  # grey rectangle
+        ax1.legend(loc="lower right")
+        ax1.set_ylabel('Accuracy')
+        ax1.set_title('Reliability curve')
+
         if strategy == 'uniform':
             ax2 = plt.subplot2grid((3, 1), (2, 0))
             counts, bins, _ = ax2.hist(y_pred, range=(0, 1), bins=10, histtype='bar', rwidth=0.7)
@@ -43,16 +48,13 @@ def plot_calibration(y_true, y_pred):
             ax2.set_xlabel('Confidence')
             ax2.set_yscale('log')
 
+            plt.savefig('C:/Users/roull/Documents/Calibration/results/Figure1.png', dpi=300)
+
         if strategy == 'quantile':
             ax1.set_xlabel('Confidence')
-
-        ax1.axvspan(0.3, 0.7, color='gray', alpha=0.4, label='No Man\'s Land')  # grey rectangle
-        ax1.legend(loc="lower right")
-        ax1.set_ylabel('Accuracy')
-        ax1.set_title('Reliability curve')
+            plt.savefig('C:/Users/roull/Documents/Calibration/results/Figure2.png', dpi=300)
 
         plt.tight_layout()
-
         plt.show()
 
     print(f'Brier score: {brier_score}')

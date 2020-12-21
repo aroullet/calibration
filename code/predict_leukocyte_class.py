@@ -50,7 +50,7 @@ model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
 
-batch_size = 10
+batch_size = 1500
 test_folder = '../data/test_data/'
 test_files = os.listdir(test_folder)[:batch_size]
 
@@ -66,7 +66,7 @@ for _file in test_files:
 
 images = np.vstack(inputs) # n arrays w/ shape (1, 400, 400, 3) --> 1 w/ shape (n, 400, 400, 3)
 
-preds_probs = model.predict_on_batch(images)
+preds_probs = model.predict(images, batch_size=16)
 preds_probs = np.array(preds_probs)
 preds_probs[:,1]+=preds_probs[:,2]
 preds_probs=np.delete(preds_probs,2,1)
