@@ -10,6 +10,7 @@ import residual_network
 
 import calibration
 import os
+import sys
 
 classes_dictionary_org = {'BAS': 0, 'EBO': 1, 'EOS': 2, 'KSC': 3, 'LYA': 4, 'LYT': 5, 'MMZ': 6, 'MOB': 7, 'MON': 8, 'MYB': 9, 'MYO': 10, 'NGB': 11, 'NGS': 12, 'PMB': 13, 'PMO': 14}
 classes_dictionary = {value: key for key, value in classes_dictionary_org.items()}
@@ -70,14 +71,19 @@ preds_probs = np.array(preds_probs)
 preds_probs[:,1]+=preds_probs[:,2]
 preds_probs=np.delete(preds_probs,2,1)
 
+sys.stdout = open('C:/Users/roull/Documents/Calibration/results/output.txt', 'w')
+
 y_true, y_prob, desert_values = calibration.extract_probs(preds_probs, test_files, classes_dictionary)
 calibration.plot_calibration(y_true, y_prob)
+
 print(f'Values between 0.3 and 0.7: {desert_values}')
 
 def show_preds():
-    print ("Network output distribution: \n----------------------------------------------")
+    print("Network output distribution: \n----------------------------------------------")
     for i in range(len(preds_probs)):
         for j in range(15):
             print('{0:25}  {1}'.format(abbreviation_dict[classes_dictionary[j]], str(preds_probs[i][j])))
             if j == 14:
-                print ("\n\nPREDICTION: \n"+abbreviation_dict[classes_dictionary[np.argmax(preds_probs[i])]]+"\n")
+                print("\n\nPREDICTION: \n"+abbreviation_dict[classes_dictionary[np.argmax(preds_probs[i])]]+"\n")
+
+sys.stdout.close()
