@@ -50,9 +50,8 @@ model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
 
-batch_size = 1500
 test_folder = '../data/test_data/'
-test_files = os.listdir(test_folder)[:batch_size]
+test_files = os.listdir(test_folder)
 
 inputs = []
 
@@ -64,9 +63,9 @@ for _file in test_files:
         x = np.expand_dims(x, axis=0)
         inputs.append(x)
 
-images = np.vstack(inputs) # n arrays w/ shape (1, 400, 400, 3) --> 1 w/ shape (n, 400, 400, 3)
+images = np.vstack(inputs)  # n arrays w/ shape (1, 400, 400, 3) --> 1 w/ shape (n, 400, 400, 3)
 
-preds_probs = model.predict(images, batch_size=16)
+preds_probs = model.predict(images, batch_size=64)
 preds_probs = np.array(preds_probs)
 preds_probs[:,1]+=preds_probs[:,2]
 preds_probs=np.delete(preds_probs,2,1)
@@ -76,7 +75,7 @@ sys.stdout = open('C:/Users/roull/Documents/Calibration/results/output.txt', 'w'
 y_true, y_prob, desert_values = calibration.extract_probs(preds_probs, test_files, classes_dictionary)
 calibration.plot_calibration(y_true, y_prob)
 
-print(f'Values between 0.3 and 0.7: {desert_values}')
+print(f'Values between 0.2 and 0.8: {desert_values}')
 
 def show_preds():
     print("Network output distribution: \n----------------------------------------------")

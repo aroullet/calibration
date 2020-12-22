@@ -15,7 +15,7 @@ def extract_probs(preds, files, dct):
             else:
                 y_true.append(0)
 
-    desert_values = sum(1 for i in y_pred if 0.3 < i < 0.7)  # predictions in the interval (0.3, 0.7)
+    desert_values = sum(1 for i in y_pred if 0.2 < i < 0.8)  # predictions in the interval (0.2, 0.8)
 
     return y_true, y_pred, desert_values
 
@@ -34,7 +34,7 @@ def plot_calibration(y_true, y_pred):
         ax1.set_ylim([-0.05, 1.05])
         ax1.text(0.4, 0.2, f'Brier Score: {round(brier_score, 3)}')
 
-        ax1.axvspan(0.3, 0.7, color='gray', alpha=0.4, label='No Man\'s Land')  # grey rectangle
+        ax1.axvspan(0.2, 0.8, color='gray', alpha=0.4, label='No Man\'s Land')  # grey rectangle
         ax1.legend(loc="lower right")
         ax1.set_ylabel('Accuracy')
         ax1.set_title('Reliability curve')
