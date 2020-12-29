@@ -2,26 +2,41 @@ import matplotlib.pyplot as plt
 from sklearn.calibration import calibration_curve
 from sklearn.metrics import brier_score_loss
 
-def extract_probs(preds, files, dct):
-    y_true = []
-    y_pred = []
+# TODO: plot reliability diagrams for blast cells detection
+# TODO: plot for each class
 
-    for i in range(len(files)):
-        for j in range(len(preds[i])):
-            y_pred.append(preds[i][j])
+class Calibrator():
+    def __init__(self, preds, files):
+        self.preds = preds
+        self.files = files
 
-            if files[i][:3] == dct[j]:
-                y_true.append(1)
-            else:
-                y_true.append(0)
+    def extract_all_probs(self, dct):
+        y_true = []
+        y_pred = []
 
-    desert_values = sum(1 for i in y_pred if 0.2 < i < 0.8)  # predictions in the interval (0.2, 0.8)
+        for i in range(len(self.files)):
+            for j in range(len(self.preds[i])):
+                y_pred.append(self.preds[i][j])
 
-    return y_true, y_pred, desert_values
+                if self.files[i][:3] == dct[j]:
+                    y_true.append(1)
+                else:
+                    y_true.append(0)
 
-def plot_calibration(y_true, y_pred):
-    for strategy in ('uniform', 'quantile'):
-        prob_true, prob_pred = calibration_curve(y_true, y_pred, n_bins=10, strategy=strategy)
+        desert_values = sum(1 for i in y_pred if 0.2 < i < 0.8)  # predictions in the interval (0.2, 0.8)
+        print(f'Values between 0.2 and 0.8: {desert_values}')
+
+        return y_true, y_pred
+
+    def extract_class_probs(self, cell='NGS'):
+        y_true = []
+        y_pred = []
+
+        for i in range(len(self.files)):
+            pass
+
+    def plot_calibration(self, y_true, y_pred):
+        prob_true, prob_pred = calibration_curve(y_true, y_pred, n_bins=10)
         print('Accuracy per bin: ', prob_true)
 
         brier_score = brier_score_loss(y_true, y_pred)
@@ -39,22 +54,16 @@ def plot_calibration(y_true, y_pred):
         ax1.set_ylabel('Accuracy')
         ax1.set_title('Reliability curve')
 
-        if strategy == 'uniform':
-            ax2 = plt.subplot2grid((3, 1), (2, 0))
-            counts, bins, _ = ax2.hist(y_pred, range=(0, 1), bins=10, histtype='bar', rwidth=0.7)
+        ax2 = plt.subplot2grid((3, 1), (2, 0))
+        counts, bins, _ = ax2.hist(y_pred, range=(0, 1), bins=10, histtype='bar', rwidth=0.7)
+        ax2.set_ylabel('Count')
+        ax2.set_xlabel('Confidence')
+        ax2.set_yscale('log')
+        print('Bins and counts: ', list(zip(bins, counts)))
 
-            print('Bins and counts: ', list(zip(bins, counts)))
-            ax2.set_ylabel('Count')
-            ax2.set_xlabel('Confidence')
-            ax2.set_yscale('log')
-
-            plt.savefig('C:/Users/roull/Documents/Calibration/results/Figure1.png', dpi=300)
-
-        if strategy == 'quantile':
-            ax1.set_xlabel('Confidence')
-            plt.savefig('C:/Users/roull/Documents/Calibration/results/Figure2.png', dpi=300)
+        plt.savefig('C:/Users/roull/Documents/Calibration/results/Figure1.png', dpi=300)
 
         plt.tight_layout()
         plt.show()
 
-    print(f'Brier score: {brier_score}')
+        print(f'Brier score: {brier_score}')
