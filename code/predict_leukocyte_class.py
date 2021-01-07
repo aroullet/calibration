@@ -48,10 +48,8 @@ model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
 
-batch_size = 3
-
 test_folder = '../data/test_data/'
-test_files = os.listdir(test_folder)[:batch_size]
+test_files = os.listdir(test_folder)[1240:1280]
 
 inputs = []
 
@@ -70,13 +68,12 @@ preds_probs = np.array(preds_probs)
 preds_probs[:, 1] += preds_probs[:, 2]
 preds_probs = np.delete(preds_probs, 2, 1)
 
-#sys.stdout = open('C:/Users/roull/Documents/Calibration/results/output.txt', 'w')
+#sys.stdout = open('C:/Users/roull/Documents/Calibration/results/outputEOS.txt', 'w')
 
 cc = CalibrationCurves(preds_probs, test_files)
-y_true, y_pred = cc.extract_probs()
-print(y_true, y_pred)
+
+y_true, y_pred = cc.extract_probs(cell='blast')
 cc.plot(y_true, y_pred)
-print(len(y_true))
 
 def show_preds():
     print("Network output distribution: \n----------------------------------------------")
