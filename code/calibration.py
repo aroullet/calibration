@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
+import numpy as np
 from sklearn.calibration import calibration_curve
 from sklearn.metrics import brier_score_loss
-
-# TODO: plot reliability diagrams for blast cells detection
 
 classes_dictionary_org = {'BAS': 0, 'EBO': 1, 'EOS': 2, 'KSC': 3, 'LYA': 4, 'LYT': 5, 'MMZ': 6, 'MOB': 7,
                           'MON': 8, 'MYB': 9, 'MYO': 10, 'NGB': 11, 'NGS': 12, 'PMB': 13, 'PMO': 14}
@@ -19,7 +18,7 @@ class CalibrationCurves:
         y_true = []
         y_pred = []
 
-        def all_probs():
+        def _all_probs():
             for i in range(len(self.files)):
                 for j in range(len(self.preds[i])):
                     y_pred.append(self.preds[i][j])
@@ -31,7 +30,7 @@ class CalibrationCurves:
 
             return y_true, y_pred
 
-        def class_probs():
+        def _class_probs():
             index = classes_dictionary_org[cell]
 
             for i in range(len(self.files)):
@@ -44,10 +43,10 @@ class CalibrationCurves:
 
             return y_true, y_pred
 
-        def blast_probs():
+        def _blast_probs():
             for i in range(len(self.files)):
-                y_pred.append(self.preds[i][7]+self.preds[i][10])
-                if self.files[i][:3] in ('MYO', 'MOB'):
+                y_pred.append(self.preds[i][7] + self.preds[i][10])
+                if self.files[i][:3] in ('MYO', 'MOB'):  # blast cell codes
                     y_true.append(1)
                 else:
                     y_true.append(0)
@@ -55,12 +54,29 @@ class CalibrationCurves:
             assert len(y_true) == len(y_pred)
             return y_true, y_pred
 
+        def _atypical_probs():
+            for i in range(len(self.files)):
+                total_prob = sum(self.preds[i][j] for j in (1, 4, 6, 7, 9, 10, 14))
+                if total_prob < 1:
+                    y_pred.append(sum(self.preds[i][j] for j in (1, 4, 6, 7, 9, 10, 14)))
+                else:
+                    y_pred.append(1)  # approximations sometimes lead to total > 1
+                if self.files[i][:3] in ('MYO', 'MOB', 'MYB', 'MMZ', 'PMO', 'EBO', 'LYA'):  # atypical cell codes
+                    y_true.append(1)
+                else:
+                    y_true.append(0)
+            return y_true, y_pred
+
         if cell is None:
-            return all_probs()
+            return _all_probs()
+        elif cell in classes_dictionary_org:
+            return _class_probs()
         elif cell == 'blast':
-            return blast_probs()
+            return _blast_probs()
+        elif cell == 'atypical':
+            return _atypical_probs()
         else:
-            return class_probs()
+            raise ValueError(f"'cell' should be one of the cell codes, 'atypical', 'blast' or None. Got {cell}. ")
 
     def plot(self, y_true, y_pred):
         prob_true, prob_pred = calibration_curve(y_true, y_pred, n_bins=10)
@@ -87,9 +103,12 @@ class CalibrationCurves:
         ax2.set_yscale('log')
         print('Bins and counts: ', list(zip(bins, counts)))
 
-        #plt.savefig('C:/Users/roull/Documents/Calibration/results/Figure1.png', dpi=300)
-
         plt.tight_layout()
         plt.show()
 
         print(f'Brier score: {brier_score}')
+
+def brier_score(y_true, y_pred):
+    y_true = np.array(y_true).reshape(-1, 15)
+    y_pred = np.array(y_pred).reshape(-1, 15)
+    return np.mean(np.sum((y_true-y_pred) ** 2, axis=1))

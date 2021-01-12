@@ -7,7 +7,7 @@ from keras import backend as K
 from vis.utils import utils
 import numpy as np
 import residual_network
-from calibration import CalibrationCurves
+import calibration
 
 import os
 import sys
@@ -49,12 +49,12 @@ model.compile(loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 test_folder = '../data/test_data/'
-test_files = os.listdir(test_folder)[1240:1280]
+test_files = os.listdir(test_folder)
 
 inputs = []
 
-for _file in test_files:
-    img = utils.load_img(test_folder + _file)
+for file_ in test_files:
+    img = utils.load_img(test_folder + file_)
     img = (img[:, :, :3] * 1. / 255)
 
     x = image.img_to_array(img)
@@ -68,12 +68,13 @@ preds_probs = np.array(preds_probs)
 preds_probs[:, 1] += preds_probs[:, 2]
 preds_probs = np.delete(preds_probs, 2, 1)
 
-#sys.stdout = open('C:/Users/roull/Documents/Calibration/results/outputEOS.txt', 'w')
+#sys.stdout = open('C:/Users/roull/Documents/Calibration/results/BS.txt', 'w')
 
-cc = CalibrationCurves(preds_probs, test_files)
-
-y_true, y_pred = cc.extract_probs(cell='blast')
+cc = calibration.CalibrationCurves(preds_probs, test_files)
+y_true, y_pred = cc.extract_probs()
 cc.plot(y_true, y_pred)
+bs = calibration.brier_score(y_true, y_pred)
+print(f'Multi-class Brier Score: {bs}')
 
 def show_preds():
     print("Network output distribution: \n----------------------------------------------")
