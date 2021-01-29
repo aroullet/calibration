@@ -48,8 +48,9 @@ model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
 
+n = 3630  # number of images to feed into the network, useful for debugging
 test_folder = '../data/test_data/'
-test_files = os.listdir(test_folder)
+test_files = os.listdir(test_folder)[:n]
 
 inputs = []
 
@@ -70,11 +71,11 @@ preds_probs = np.delete(preds_probs, 2, 1)
 
 #sys.stdout = open('C:/Users/roull/Documents/Calibration/results/BS.txt', 'w')
 
-cc = calibration.CalibrationCurves(preds_probs, test_files)
-y_true, y_pred = cc.extract_probs()
+cc = calibration.CalibrationCurves(preds_probs, test_files, n)
+y_true, y_pred = cc.get_probs()
+
+print(preds_probs.shape, y_pred.shape, y_true.shape)
 cc.plot(y_true, y_pred)
-bs = calibration.brier_score(y_true, y_pred)
-print(f'Multi-class Brier Score: {bs}')
 
 def show_preds():
     print("Network output distribution: \n----------------------------------------------")
@@ -85,3 +86,10 @@ def show_preds():
                 print("\n\nPREDICTION: \n" + abbreviation_dict[classes_dictionary[np.argmax(preds_probs[i])]] + "\n")
 
 #sys.stdout.close()
+
+from temperature_scaling import ModelWithTemperature
+
+# TODO: Change preds_probs to output logits and merge it with true labels --> merge output of get_probs
+# true labels shape (n, 15)
+#scaled_model = ModelWithTemperature(model)
+#scaled_model.set_temperature(preds_probs)
