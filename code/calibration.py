@@ -8,6 +8,7 @@ import uncertainty_metrics.numpy as um
 
 classes_dictionary_org = {'BAS': 0, 'EBO': 1, 'EOS': 2, 'KSC': 3, 'LYA': 4, 'LYT': 5, 'MMZ': 6, 'MOB': 7,
                           'MON': 8, 'MYB': 9, 'MYO': 10, 'NGB': 11, 'NGS': 12, 'PMB': 13, 'PMO': 14}
+
 classes_dictionary = {value: key for key, value in classes_dictionary_org.items()}
 
 
@@ -28,7 +29,7 @@ class CalibrationCurves:
 
             for i in range(len(self.files)):
                 y_pred[i] = self.preds[i]
-                for j in range(len(self.preds[i])):
+                for j in range(15):
                     if self.files[i][:3] == classes_dictionary[j]:
                         y_true[i][j] = 1
                     else:
@@ -100,22 +101,31 @@ class CalibrationCurves:
         print('ECE: ', ece)
 
         plt.style.use('seaborn')
+        plt.rc('font', size=18)
+        plt.rc('axes', titlesize=22)
+        plt.rc('axes', labelsize=18)
+
+        import pylab as plot
+        params = {'legend.fontsize': 14}
+        plot.rcParams.update(params)
 
         ax1 = plt.subplot2grid((3, 1), (0, 0), rowspan=2)
         ax1.plot([0, 1], [0, 1], 'k:', label='Perfectly calibrated')
         ax1.plot(prob_pred, prob_true, 's-', label='Model\'s calibration')
         ax1.set_ylim([-0.05, 1.05])
-        ax1.text(0.4, 0.2, f'Brier Score: {round(brier_score, 3)}')
+        ax1.text(0, 0.8, f'Brier Score: {round(brier_score, 3)}')
+        ax1.text(0, 0.7, f'ECE : {round(ece, 3)}')
 
         ax1.legend(loc='lower right')
         ax1.set_ylabel('Accuracy')
-        ax1.set_title('Reliability curve')
+        ax1.set_title('Reliability curve (global)')
 
         ax2 = plt.subplot2grid((3, 1), (2, 0))
         counts, bins, _ = ax2.hist(y_pred, range=(0, 1), bins=10, histtype='bar', rwidth=0.7)
         ax2.set_ylabel('Count')
         ax2.set_xlabel('Confidence')
         ax2.set_yscale('log')
+
         print('Bins and counts: ', list(zip(bins, counts)))
 
         plt.tight_layout()

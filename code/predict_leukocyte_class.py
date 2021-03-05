@@ -7,13 +7,13 @@ from keras import backend as K
 from vis.utils import utils
 import numpy as np
 import residual_network
-import calibration
 
+import calibration
 import os
-import sys
 
 classes_dictionary_org = {'BAS': 0, 'EBO': 1, 'EOS': 2, 'KSC': 3, 'LYA': 4, 'LYT': 5, 'MMZ': 6, 'MOB': 7,
                           'MON': 8, 'MYB': 9, 'MYO': 10, 'NGB': 11, 'NGS': 12, 'PMB': 13, 'PMO': 14}
+
 classes_dictionary = {value: key for key, value in classes_dictionary_org.items()}
 
 abbreviation_dict = {'NGS': 'Neutrophil (segmented)',
@@ -48,12 +48,11 @@ model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
 
-n = 3630  # number of images to feed into the network, useful for debugging
-test_folder = '../data/test_data/'
+n = 3714  # number of images to feed into the network, used for debugging
+test_folder = '../data/fold4/'
 test_files = os.listdir(test_folder)[:n]
 
 inputs = []
-
 for file_ in test_files:
     img = utils.load_img(test_folder + file_)
     img = (img[:, :, :3] * 1. / 255)
@@ -62,20 +61,17 @@ for file_ in test_files:
     x = np.expand_dims(x, axis=0)
     inputs.append(x)
 
-images = np.vstack(inputs)  # n arrays w/ shape (1, 400, 400, 3) --> 1 array w/ shape (n, 400, 400, 3)
+images = np.vstack(inputs)
 
 preds_probs = model.predict(images, batch_size=32)
 preds_probs = np.array(preds_probs)
 preds_probs[:, 1] += preds_probs[:, 2]
 preds_probs = np.delete(preds_probs, 2, 1)
 
-#sys.stdout = open('C:/Users/roull/Documents/Calibration/results/BS.txt', 'w')
-
 cc = calibration.CalibrationCurves(preds_probs, test_files, n)
 y_true, y_pred = cc.get_probs()
-
-print(preds_probs.shape, y_pred.shape, y_true.shape)
 cc.plot(y_true, y_pred)
+print('Multi-class Brier score: ', calibration.brier_score(y_true, y_pred))
 
 def show_preds():
     print("Network output distribution: \n----------------------------------------------")
@@ -84,12 +80,3 @@ def show_preds():
             print('{0:25}  {1}'.format(abbreviation_dict[classes_dictionary[j]], str(preds_probs[i][j])))
             if j == 14:
                 print("\n\nPREDICTION: \n" + abbreviation_dict[classes_dictionary[np.argmax(preds_probs[i])]] + "\n")
-
-#sys.stdout.close()
-
-from temperature_scaling import ModelWithTemperature
-
-# TODO: Change preds_probs to output logits and merge it with true labels --> merge output of get_probs
-# true labels shape (n, 15)
-#scaled_model = ModelWithTemperature(model)
-#scaled_model.set_temperature(preds_probs)

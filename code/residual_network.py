@@ -122,7 +122,9 @@ def residual_network(x):
         x = residual_block(x, 1024, 2048, _strides=strides)
 
     x = layers.GlobalAveragePooling2D()(x)
-    x = layers.Dense(16,activation='softmax')(x)
+    x = layers.Dense(16, activation=None)(x)
+    x = layers.Lambda(lambda z: z / 2.176)(x)
+    x = layers.Softmax()(x)
 
     return x
 
