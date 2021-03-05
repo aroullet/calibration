@@ -48,8 +48,8 @@ model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
 
-n = 3714  # number of images to feed into the network, used for debugging
-test_folder = '../data/fold4/'
+n = 3773  # number of images to feed into the network, used for debugging
+test_folder = '../data/fold1/'
 test_files = os.listdir(test_folder)[:n]
 
 inputs = []
@@ -65,13 +65,20 @@ images = np.vstack(inputs)
 
 preds_probs = model.predict(images, batch_size=32)
 preds_probs = np.array(preds_probs)
-preds_probs[:, 1] += preds_probs[:, 2]
-preds_probs = np.delete(preds_probs, 2, 1)
+#preds_probs[:, 1] += preds_probs[:, 2]
+#preds_probs = np.delete(preds_probs, 2, 1)
 
 cc = calibration.CalibrationCurves(preds_probs, test_files, n)
 y_true, y_pred = cc.get_probs()
-cc.plot(y_true, y_pred)
-print('Multi-class Brier score: ', calibration.brier_score(y_true, y_pred))
+print(y_true, y_pred)
+print(test_files)
+assert y_pred.shape == y_true.shape
+#cc.plot(y_true, y_pred)
+#print('Multi-class Brier score: ', calibration.brier_score(y_true, y_pred))
+
+with open('arrays1.npy', 'wb') as f:
+    labels = np.save(f, y_true)
+    logits = np.save(f, y_pred)
 
 def show_preds():
     print("Network output distribution: \n----------------------------------------------")

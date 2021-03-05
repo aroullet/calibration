@@ -9,7 +9,8 @@ import uncertainty_metrics.numpy as um
 classes_dictionary_org = {'BAS': 0, 'EBO': 1, 'EOS': 2, 'KSC': 3, 'LYA': 4, 'LYT': 5, 'MMZ': 6, 'MOB': 7,
                           'MON': 8, 'MYB': 9, 'MYO': 10, 'NGB': 11, 'NGS': 12, 'PMB': 13, 'PMO': 14}
 
-classes_dictionary = {value: key for key, value in classes_dictionary_org.items()}
+classes_dictionary = {0: 'BAS', 1: 'EBO', 3: 'EOS', 4: 'KSC', 5: 'LYA', 6: 'LYT', 7: 'MMZ', 8: 'MOB', 9: 'MON', 10: 'MYB', 11: 'MYO',
+                      12: 'NGB', 13: 'NGS', 14: 'PMB', 15: 'PMO'}
 
 
 class CalibrationCurves:
@@ -24,12 +25,15 @@ class CalibrationCurves:
         y_pred = np.empty(shape=(self.n,))
 
         def _all_probs():
-            y_true = np.empty(shape=(self.n, 15,), dtype=int)
-            y_pred = np.empty(shape=(self.n, 15))
+            y_true = np.empty(shape=(self.n, 16,), dtype=int)
+            y_pred = np.empty(shape=(self.n, 16))
 
             for i in range(len(self.files)):
                 y_pred[i] = self.preds[i]
-                for j in range(15):
+                for j in range(16):
+                    if j == 2:
+                        y_true[i][j] = 0
+                        j += 1
                     if self.files[i][:3] == classes_dictionary[j]:
                         y_true[i][j] = 1
                     else:
