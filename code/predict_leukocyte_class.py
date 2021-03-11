@@ -41,7 +41,7 @@ if K.image_data_format() == 'channels_first':
 else:
     input_shape = (img_width, img_height, 3)
 
-weight_file_path = "weights_fold2.hdf5"
+weight_file_path = "../data/weights_fold2.hdf5"
 
 model = residual_network.model
 model.load_weights(weight_file_path)
@@ -53,7 +53,7 @@ model.compile(loss='categorical_crossentropy',
 # number of images to feed into the network:
 # n_fold1 = 3773, n_fold2 = 3630, n_fold3 = 3676, n_fold_4 = 3714, n_fold_5 = 3572
 n = 3630
-test_folder = '../data/fold2/'
+test_folder = '../images/fold2/'
 test_files = os.listdir(test_folder)[:n]
 
 inputs = []
@@ -83,7 +83,7 @@ def categorical_labels():
 
 def save_as_npy():
     labels = categorical_labels()
-    with open('arrays2.npy', 'wb') as f:
+    with open('../data/arrays2.npy', 'wb') as f:
         np.save(f, labels)
         np.save(f, preds_probs)
 

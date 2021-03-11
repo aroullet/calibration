@@ -42,7 +42,7 @@ def temp_scaling(logits_nps, labels_nps, sess, maxiter=50):
 
     return temp_var
 
-with open('arrays1.npy', 'rb') as f:
+with open('../data/arrays1.npy', 'rb') as f:
     labels = np.load(f, allow_pickle=True)
     logits = np.load(f, allow_pickle=True)
 
