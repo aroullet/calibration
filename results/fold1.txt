@@ -1,0 +1,2 @@
+Original NLL: 0.264, validation accuracy: 93.506%
+After temperature scaling, NLL: 0.252, temperature: 1.904, validation accuracy: 93.506

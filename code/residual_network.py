@@ -123,8 +123,8 @@ def residual_network(x):
 
     x = layers.GlobalAveragePooling2D()(x)
     x = layers.Dense(16, activation=None)(x)
-    #x = layers.Lambda(lambda z: z / 2.176)(x)
-    #x = layers.Softmax()(x)
+    x = layers.Lambda(lambda z: z / 2.176)(x)  # replace by temperature for the corresponding fold
+    x = layers.Softmax()(x)
 
     return x
 

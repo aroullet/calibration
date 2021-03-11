@@ -21,7 +21,7 @@ def temp_scaling(logits_nps, labels_nps, sess, maxiter=50):
     nll_loss_op = tf.losses.sparse_softmax_cross_entropy(
         labels=labels_tensor, logits=logits_w_temp)
     org_nll_loss_op = tf.identity(nll_loss_op)
-    nll_loss_op = tf.cast(nll_loss_op, tf.float32)
+    nll_loss_op = tf.cast(nll_loss_op, tf.float32)  # fixes issue with a random int32 showing up in the array
 
     # optimizer
     optim = tf.contrib.opt.ScipyOptimizerInterface(nll_loss_op, options={'maxiter': maxiter})
@@ -42,7 +42,7 @@ def temp_scaling(logits_nps, labels_nps, sess, maxiter=50):
 
     return temp_var
 
-with open('arrays.npy', 'rb') as f:
+with open('arrays1.npy', 'rb') as f:
     labels = np.load(f, allow_pickle=True)
     logits = np.load(f, allow_pickle=True)
 

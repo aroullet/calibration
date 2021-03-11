@@ -11,8 +11,10 @@ import residual_network
 import calibration
 import os
 
-classes_dictionary_org = {'BAS': 0, 'EBO': 1, 'EOS': 2, 'KSC': 3, 'LYA': 4, 'LYT': 5, 'MMZ': 6, 'MOB': 7,
-                          'MON': 8, 'MYB': 9, 'MYO': 10, 'NGB': 11, 'NGS': 12, 'PMB': 13, 'PMO': 14}
+
+# Modified dictionary values for categorical_labels method, see original in calibration.py
+classes_dictionary_org = {'BAS': 0, 'EBO': 1, 'EOS': 3, 'KSC': 4, 'LYA': 5, 'LYT': 6, 'MMZ': 7, 'MOB': 8,
+                          'MON': 9, 'MYB': 10, 'MYO': 11, 'NGB': 12, 'NGS': 13, 'PMB': 14, 'PMO': 15}
 
 classes_dictionary = {value: key for key, value in classes_dictionary_org.items()}
 
@@ -39,7 +41,7 @@ if K.image_data_format() == 'channels_first':
 else:
     input_shape = (img_width, img_height, 3)
 
-weight_file_path = "weights.hdf5"
+weight_file_path = "weights_fold2.hdf5"
 
 model = residual_network.model
 model.load_weights(weight_file_path)
@@ -48,8 +50,10 @@ model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
 
-n = 3773  # number of images to feed into the network, used for debugging
-test_folder = '../data/fold1/'
+# number of images to feed into the network:
+# n_fold1 = 3773, n_fold2 = 3630, n_fold3 = 3676, n_fold_4 = 3714, n_fold_5 = 3572
+n = 3630
+test_folder = '../data/fold2/'
 test_files = os.listdir(test_folder)[:n]
 
 inputs = []
@@ -65,20 +69,24 @@ images = np.vstack(inputs)
 
 preds_probs = model.predict(images, batch_size=32)
 preds_probs = np.array(preds_probs)
-#preds_probs[:, 1] += preds_probs[:, 2]
-#preds_probs = np.delete(preds_probs, 2, 1)
+preds_probs[:, 1] += preds_probs[:, 2]  # comment these two lines out
+preds_probs = np.delete(preds_probs, 2, 1)  # for temperature scaling
 
-cc = calibration.CalibrationCurves(preds_probs, test_files, n)
-y_true, y_pred = cc.get_probs()
-print(y_true, y_pred)
-print(test_files)
-assert y_pred.shape == y_true.shape
-#cc.plot(y_true, y_pred)
-#print('Multi-class Brier score: ', calibration.brier_score(y_true, y_pred))
 
-with open('arrays1.npy', 'wb') as f:
-    labels = np.save(f, y_true)
-    logits = np.save(f, y_pred)
+def categorical_labels():
+    # temp_tf.py doesn't take one-hot-encoded labels
+    vec = np.empty(shape=(n,))
+    for i in range(n):
+        vec[i] = classes_dictionary_org[test_files[i][:3]]
+    return vec
+
+
+def save_as_npy():
+    labels = categorical_labels()
+    with open('arrays2.npy', 'wb') as f:
+        np.save(f, labels)
+        np.save(f, preds_probs)
+
 
 def show_preds():
     print("Network output distribution: \n----------------------------------------------")

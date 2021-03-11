@@ -9,8 +9,7 @@ import uncertainty_metrics.numpy as um
 classes_dictionary_org = {'BAS': 0, 'EBO': 1, 'EOS': 2, 'KSC': 3, 'LYA': 4, 'LYT': 5, 'MMZ': 6, 'MOB': 7,
                           'MON': 8, 'MYB': 9, 'MYO': 10, 'NGB': 11, 'NGS': 12, 'PMB': 13, 'PMO': 14}
 
-classes_dictionary = {0: 'BAS', 1: 'EBO', 3: 'EOS', 4: 'KSC', 5: 'LYA', 6: 'LYT', 7: 'MMZ', 8: 'MOB', 9: 'MON', 10: 'MYB', 11: 'MYO',
-                      12: 'NGB', 13: 'NGS', 14: 'PMB', 15: 'PMO'}
+classes_dictionary = {value: key for key, value in classes_dictionary_org.items()}
 
 
 class CalibrationCurves:
@@ -25,20 +24,19 @@ class CalibrationCurves:
         y_pred = np.empty(shape=(self.n,))
 
         def _all_probs():
-            y_true = np.empty(shape=(self.n, 16,), dtype=int)
-            y_pred = np.empty(shape=(self.n, 16))
+            y_true = np.empty(shape=(self.n, 15,), dtype=int)
+            y_pred = np.empty(shape=(self.n, 15))
 
             for i in range(len(self.files)):
                 y_pred[i] = self.preds[i]
-                for j in range(16):
-                    if j == 2:
-                        y_true[i][j] = 0
-                        j += 1
+                for j in range(15):
                     if self.files[i][:3] == classes_dictionary[j]:
                         y_true[i][j] = 1
                     else:
                         y_true[i][j] = 0
 
+            # ensure all values < 1 without creating a copy of the array (because EBO class is sum of 2 classes)
+            np.minimum(y_pred, 1, out=y_pred)
             return y_true, y_pred
 
         def _class_probs():
@@ -62,20 +60,18 @@ class CalibrationCurves:
                 else:
                     y_true[i] = 0
 
-            assert len(y_true) == len(y_pred)
             return y_true, y_pred
 
         def _atypical_probs():
             for i in range(len(self.files)):
                 total_prob = sum(self.preds[i][j] for j in (1, 4, 6, 7, 9, 10, 14))
-                if total_prob < 1:
-                    y_pred[i] = sum(self.preds[i][j] for j in (1, 4, 6, 7, 9, 10, 14))
-                else:
-                    y_pred[i] = 1  # approximations sometimes lead to total > 1
+                y_pred[i] = total_prob
                 if self.files[i][:3] in ('MYO', 'MOB', 'MYB', 'MMZ', 'PMO', 'EBO', 'LYA'):  # atypical cell codes
                     y_true[i] = 1
                 else:
                     y_true[i] = 0
+
+            np.minimum(y_pred, 1, out=y_pred)
             return y_true, y_pred
 
         if cell is None:
@@ -101,7 +97,8 @@ class CalibrationCurves:
         brier_score = brier_score_loss(y_true, y_pred)
         print(f'Brier score: {brier_score}')
 
-        ece = um.gce(y_true, y_pred, binning_scheme='even', max_prob=False, class_conditional=False, norm='l1', num_bins=10)
+        ece = um.gce(y_true, y_pred, binning_scheme='even', max_prob=False,
+                     class_conditional=False, norm='l1', num_bins=10)
         print('ECE: ', ece)
 
         plt.style.use('seaborn')
@@ -126,6 +123,7 @@ class CalibrationCurves:
 
         ax2 = plt.subplot2grid((3, 1), (2, 0))
         counts, bins, _ = ax2.hist(y_pred, range=(0, 1), bins=10, histtype='bar', rwidth=0.7)
+
         ax2.set_ylabel('Count')
         ax2.set_xlabel('Confidence')
         ax2.set_yscale('log')
@@ -135,7 +133,9 @@ class CalibrationCurves:
         plt.tight_layout()
         plt.show()
 
-def brier_score(y_true, y_pred):
+
+# Useful metric for an overview of model calibration
+def multi_class_brier_score(y_true, y_pred):
     y_true = np.array(y_true).reshape(-1, 15)
     y_pred = np.array(y_pred).reshape(-1, 15)
     return np.mean(np.sum((y_true-y_pred) ** 2, axis=1))

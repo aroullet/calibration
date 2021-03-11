@@ -2,5 +2,4 @@ data/
 venv/
 .idea/
 __pycache__/
-results/
 .python-version
