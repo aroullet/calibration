@@ -42,6 +42,8 @@ def temp_scaling(logits_nps, labels_nps, sess, maxiter=50):
 
     return temp_var
 
+
+# select a .npy file in /data/ which contains arrays of logits and labels for each fold
 with open('../data/arrays1.npy', 'rb') as f:
     labels = np.load(f, allow_pickle=True)
     logits = np.load(f, allow_pickle=True)

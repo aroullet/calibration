@@ -52,8 +52,8 @@ model.compile(loss='categorical_crossentropy',
 
 # number of images to feed into the network:
 # n_fold1 = 3773, n_fold2 = 3630, n_fold3 = 3676, n_fold_4 = 3714, n_fold_5 = 3572
-n = 3630
-test_folder = '../images/fold2/'
+n = 3773
+test_folder = '../images/fold1/'
 test_files = os.listdir(test_folder)[:n]
 
 inputs = []
@@ -69,8 +69,14 @@ images = np.vstack(inputs)
 
 preds_probs = model.predict(images, batch_size=32)
 preds_probs = np.array(preds_probs)
-preds_probs[:, 1] += preds_probs[:, 2]  # comment these two lines out
-preds_probs = np.delete(preds_probs, 2, 1)  # for temperature scaling
+preds_probs[:, 1] += preds_probs[:, 2]
+preds_probs = np.delete(preds_probs, 2, 1)
+
+
+def reliability_diagram():
+    cc = calibration.CalibrationCurves(preds_probs, test_files, n)
+    y_true, y_pred = cc.get_probs()  # choose cell code for a specific class, defaults to all
+    cc.plot(y_true, y_pred)
 
 
 def categorical_labels():
@@ -83,7 +89,7 @@ def categorical_labels():
 
 def save_as_npy():
     labels = categorical_labels()
-    with open('../data/arrays2.npy', 'wb') as f:
+    with open('../data/arrays1.npy', 'wb') as f:
         np.save(f, labels)
         np.save(f, preds_probs)
 
@@ -95,3 +101,7 @@ def show_preds():
             print('{0:25}  {1}'.format(abbreviation_dict[classes_dictionary[j]], str(preds_probs[i][j])))
             if j == 14:
                 print("\n\nPREDICTION: \n" + abbreviation_dict[classes_dictionary[np.argmax(preds_probs[i])]] + "\n")
+
+
+if __name__ == '__main__':
+    reliability_diagram()
