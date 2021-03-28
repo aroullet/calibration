@@ -41,7 +41,7 @@ if K.image_data_format() == 'channels_first':
 else:
     input_shape = (img_width, img_height, 3)
 
-weight_file_path = "../data/weights_fold2.hdf5"
+weight_file_path = "../data/weights_fold5.hdf5"
 
 model = residual_network.model
 model.load_weights(weight_file_path)
@@ -52,7 +52,7 @@ model.compile(loss='categorical_crossentropy',
 
 # number of images to feed into the network:
 # n_fold1 = 3773, n_fold2 = 3630, n_fold3 = 3676, n_fold_4 = 3714, n_fold_5 = 3572
-n = 3773
+n = 3572
 test_folder = '../images/fold1/'
 test_files = os.listdir(test_folder)[:n]
 
@@ -74,6 +74,7 @@ preds_probs = np.delete(preds_probs, 2, 1)
 
 
 def reliability_diagram():
+    # Plots the reliability diagram and compute calibration metrics for a specific class of the given fold
     cc = calibration.CalibrationCurves(preds_probs, test_files, n)
     y_true, y_pred = cc.get_probs()  # choose cell code for a specific class, defaults to all
     cc.plot(y_true, y_pred)
@@ -85,13 +86,6 @@ def categorical_labels():
     for i in range(n):
         vec[i] = classes_dictionary_org[test_files[i][:3]]
     return vec
-
-
-def save_as_npy():
-    labels = categorical_labels()
-    with open('../data/arrays1.npy', 'wb') as f:
-        np.save(f, labels)
-        np.save(f, preds_probs)
 
 
 def show_preds():
