@@ -11,9 +11,6 @@ If you want to re-create the plots in the results folder, just run `predict_leuk
 * data: Contains weight files and text files that list the images in each fold.
 * results: Regroups the reliability diagrams before and after temperature scaling for each fold.
 
-To see temperature scaling in action, select the npy file for the fold of your choice in `temp_scaling.py` and simply run it.
-
-
 ## References
 * Matek, C., Schwarz, S., Spiekermann, K., & Marr, C. (2019). Human-level recognition of blast cells in acute myeloid leukaemia with convolutional neural networks. Nature Machine Intelligence, 1(11), 538-544.
 
